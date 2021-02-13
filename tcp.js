@@ -7,29 +7,29 @@ modbus.tcp.server({debug: "server"}, (connection) => {
    console.log('connected');
    setInterval(function(){ 
         read(); 
-    }, 10000);    
+    }, 15000);    
     function read(){
         MongoClient.connect(uri, function(err, db) {  
             if (err) console.log(err);  
             db.collection("site_blocks").find({}).toArray(function(err, result) { 
-              if (err) console.log(err);   
+              if (err) console.log(err); 
               result.forEach(element => { 
-                if(element.blocks.length >0)
+                if(element.details.length >0)
                 {
-                    element.blocks.forEach(function (blockData, i) {
+                    element.details.forEach(function (blockData, i) {
                         connection.readHoldingRegisters({address: blockData.register_address, quantity: 1, extra: {unitId: blockData.slave_id, retry: 50000}}, (err, info) => {
                             if (err)
                                 console.log(err);
                             if (info && info.response) {
                                 let value=info.response.data[0].readInt16BE(0);
                                 console.log(value);
-                                db.collection("site_blocks").update({"_id" : element._id},{$set: {[`blocks.${i}.value`]: value}})
+                                db.collection("site_blocks").update({"_id" : element._id},{$set: {[`details.${i}.value`]: value}})
                             }
                         });
                     });
                 }
               });   
-              db.close();  
+            //   db.close();  
             });  
         });
     }
